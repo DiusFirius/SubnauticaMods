@@ -2,7 +2,7 @@
     "Id": "SeaToSeaWorldGenFixer",
     "DisplayName": "Sea To Sea World Generator Fixer",
     "Author": "DiusFirius",
-    "Version": "1.0.0",
+    "Version": "1.1.0",
     "Enable": true,
     "Game": "Subnautica",
     "AssemblyName": "SeaToSeaWorldGenFixer.dll",

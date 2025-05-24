@@ -20,6 +20,7 @@ namespace DiusFirius.SeaToSeaWorldGenFixer
 
         private static void Fix()
         {
+            int genCount = 0;
             int repaired = 0;
 
             var objects = UnityEngine.GameObject.FindObjectsOfType<MonoBehaviour>();
@@ -33,6 +34,7 @@ namespace DiusFirius.SeaToSeaWorldGenFixer
 
                 if (type.FullName == "ReikaKalseki.DIAlterra.GenUtil+WorldGeneratorHolder")
                 {
+                    genCount++;
                     var field = type.GetField("generator", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                     var generatorValue = field.GetValue(obj);
 
@@ -51,7 +53,17 @@ namespace DiusFirius.SeaToSeaWorldGenFixer
                 }
             }
 
-            UnityEngine.Debug.Log("[GenFixer] Patched " + repaired);
+            if (genCount == 0)
+            {
+                ErrorMessage.AddMessage("[GenFixer] No generators found to fix.");
+                ErrorMessage.AddMessage("[GenFixer] Either you are not near required cave (approx -853, -469, 1229) or you don't have broken generators.");
+                UnityEngine.Debug.Log("[GenFixer] No generators found to fix.");
+            }
+            else
+            {
+                ErrorMessage.AddMessage("[GenFixer] Found " + genCount + " generators, repaired " + repaired + " of them.");
+                UnityEngine.Debug.Log("[GenFixer] Patched " + repaired);
+            }
         }
 
         private static bool IsKnownBumpWormPosition(Vector3 pos)
