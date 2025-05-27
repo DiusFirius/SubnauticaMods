@@ -15,55 +15,49 @@ namespace DiusFirius.PlanktonRipper
         [QModPatch]
         public static void Patch()
         {
-            LogMessage("Starting PlanktonRipper patching...");
-
-            var harmony = new Harmony("com.diusfirius.planktonripper");
-            harmony.PatchAll();
-
-            LogMessage("Patched successfully!");
+            LogMessage("PlanktonRipper is starting up...");
+            GameObject g = new GameObject("PlanktonCleaner");
+            UnityEngine.Object.DontDestroyOnLoad(g);
+            g.AddComponent<PlanktonCleaner>();
         }
 
-        //[HarmonyPostfix]
-        //[HarmonyPatch(typeof(ReikaKalseki.Ecocean.BaseCellEnviroHandler))]
-        //[HarmonyPatch("ReikaKalseki.Ecocean.BaseCellEnviroHandler.depth")]
-        //private static bool PatchComputeEnvironment(ref int __result)
-        //{
-        //    LogMessage("Triggered patch");
-        //    __result = 1;
-        //    return false;
-        //}
-
-        //[HarmonyPrefix]
-        ////[HarmonyPatch(typeof(ReikaKalseki.Ecocean.BaseCellEnviroHandler))]
-        ////[HarmonyPatch("ReikaKalseki.Ecocean.BaseCellEnviroHandler.computeEnvironment")]
-        //[HarmonyPatch(typeof(ReikaKalseki.Ecocean.BaseCellEnviroHandler), "computeEnvironment")]
-        //[HarmonyPriority(Priority.Last)]
-        //private static bool PatchComputeEnvironmentAnother(ref bool __result)
-        //{
-        //    LogMessage("Triggered patch new");
-        //    __result = false;
-        //    return false;
-        //}
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(ReikaKalseki.Ecocean.BaseCellEnviroHandler), "Update")]
-        [HarmonyPriority(Priority.Last)]
-        private static void AlwaysDestroyPlanktonPostfix(ReikaKalseki.Ecocean.BaseCellEnviroHandler __instance)
+        public static void LogMessage(string message)
         {
-            var field = AccessTools.Field(typeof(ReikaKalseki.Ecocean.BaseCellEnviroHandler), "plankton");
-            GameObject plankton = (GameObject)field.GetValue(__instance);
+            UnityEngine.Debug.Log($"[PlanktonRipper] {message}");
+        }
+    }
 
-            if (plankton != null)
+    public class PlanktonCleaner : MonoBehaviour
+    {
+        private float timer = 0f;
+        private const float interval = 60f; // Check every 60 seconds
+
+        void Update()
+        {
+            timer += Time.deltaTime;
+            if (timer >= interval)
             {
-                UnityEngine.Object.Destroy(plankton);
-                field.SetValue(__instance, null);
-                LogMessage("Plankton destroyed successfully.");
+                timer = 0f;
+                CleanupPlankton();
             }
         }
 
-        private static void LogMessage(string message)
+        private void CleanupPlankton()
         {
-            UnityEngine.Debug.Log($"[PlanktonRipper] {message}");
+            var handlers = GameObject.FindObjectsOfType<ReikaKalseki.Ecocean.BaseCellEnviroHandler>();
+
+            foreach (var h in handlers)
+            {
+                var field = AccessTools.Field(typeof(ReikaKalseki.Ecocean.BaseCellEnviroHandler), "plankton");
+                GameObject plankton = (GameObject)field.GetValue(h);
+
+                if (plankton != null)
+                {
+                    UnityEngine.Object.Destroy(plankton);
+                    field.SetValue(h, null);
+                    Main.LogMessage($"Destroyed plankton in handler: {h.name} at position {h.transform.position}.");
+                }
+            }
         }
     }
 }
